@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Minus, Calendar, TrendingUp } from 'lucide-react';
+import { Plus, Calendar, TrendingUp } from 'lucide-react';
+import { start } from 'repl';
 
 const PassTrack = () => {
   const [packs, setPacks] = useState([]);
@@ -18,29 +19,13 @@ const PassTrack = () => {
 
   // Predefined distinct colors for studios
   const studioColors = [
-    '#FF6B6B', // Red
-    '#4ECDC4', // Teal
-    '#45B7D1', // Blue
-    '#96CEB4', // Green
-    '#FFEAA7', // Yellow
-    '#DDA0DD', // Plum
-    '#98D8C8', // Mint
-    '#F7DC6F', // Gold
-    '#BB8FCE', // Lavender
-    '#85C1E9', // Sky Blue
-    '#F8C471', // Peach
-    '#82E0AA', // Light Green
-    '#F1948A', // Salmon
-    '#85929E', // Gray Blue
-    '#D2B4DE', // Light Purple
-    '#A3E4D7', // Aqua
-    '#F9E79F', // Light Yellow
-    '#AED6F1', // Powder Blue
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
+    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA',
+    '#F1948A', '#85929E', '#D2B4DE', '#A3E4D7', '#F9E79F', '#AED6F1'
   ];
 
   // Helper function to get consistent color for a studio
   const getStudioColor = (studioName) => {
-    // Get all unique studio names to determine color index
     const allStudios = [...new Set(packs.map(pack => pack.place))].sort();
     const studioIndex = allStudios.indexOf(studioName);
     return studioColors[studioIndex % studioColors.length];
@@ -79,7 +64,7 @@ const PassTrack = () => {
     }
   };
 
-  const useSession = (packId) => {
+  const usePassSession = (packId) => {
     setPacks(packs.map(pack => {
       if (pack.id === packId && pack.remainingSessions > 0) {
         return {
@@ -115,13 +100,6 @@ const PassTrack = () => {
   };
 
   const currentYear = new Date().getFullYear();
-  const totalUsedThisYear = packs.reduce((total, pack) => {
-    const thisYearUsage = pack.usageHistory.filter(date => 
-      new Date(date).getFullYear() === currentYear
-    ).length;
-    return total + thisYearUsage;
-  }, 0);
-
   const totalRemaining = packs.reduce((total, pack) => total + pack.remainingSessions, 0);
   
   const totalSpentThisYear = packs.reduce((total, pack) => {
@@ -213,13 +191,11 @@ const PassTrack = () => {
         `}
       </style>
       <div className="max-w-md mx-auto">
-        {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-indigo-900 mb-2">Pass Track</h1>
           <p className="text-indigo-600">Keep track of your class passes</p>
         </div>
 
-        {/* Stats Summary */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Your Stats</h2>
@@ -276,7 +252,6 @@ const PassTrack = () => {
           </div>
         </div>
 
-        {/* Expiry Warnings */}
         {expiringPacks.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <h3 className="text-yellow-800 font-semibold mb-2 flex items-center gap-2">
@@ -293,7 +268,6 @@ const PassTrack = () => {
           </div>
         )}
 
-        {/* Add New Pack Button */}
         <button
           onClick={() => setShowAddForm(!showAddForm)}
           className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium mb-6 flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors"
@@ -302,7 +276,6 @@ const PassTrack = () => {
           Add New Pass Pack
         </button>
 
-        {/* Add Pack Form */}
         {showAddForm && (
           <div className="bg-white rounded-lg shadow-md p-4 mb-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">New Pass Pack</h3>
@@ -395,7 +368,6 @@ const PassTrack = () => {
           </div>
         )}
 
-        {/* Pass Packs List */}
         <div className="space-y-4">
           {packs.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
@@ -407,7 +379,7 @@ const PassTrack = () => {
               <PackCard 
                 key={pack.id} 
                 pack={pack} 
-                onUseSession={() => useSession(pack.id)}
+                onUseSession={() => usePassSession(pack.id)}
                 onAddSessions={(additional, cost) => addSessions(pack.id, additional, cost)}
                 studioColor={getStudioColor(pack.place)}
               />
@@ -428,7 +400,6 @@ const PackCard = ({ pack, onUseSession, onAddSessions, studioColor }) => {
   const isLow = pack.remainingSessions <= 2 && pack.remainingSessions > 0;
   const isEmpty = pack.remainingSessions === 0;
   
-  // Check expiry status
   const isExpired = pack.expiryDate && !pack.neverExpires && new Date(pack.expiryDate) < new Date();
   const isExpiringSoon = pack.expiryDate && !pack.neverExpires && !isExpired && 
     Math.ceil((new Date(pack.expiryDate) - new Date()) / (1000 * 60 * 60 * 24)) <= 7;
@@ -506,14 +477,12 @@ const PackCard = ({ pack, onUseSession, onAddSessions, studioColor }) => {
         </div>
       </div>
 
-      {/* Notes */}
       {pack.notes && (
         <div className="mb-3 p-2 bg-blue-50 rounded border-l-2 border-blue-200">
           <p className="text-sm text-blue-800">{pack.notes}</p>
         </div>
       )}
 
-      {/* Progress Bar */}
       <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
         <div 
           className={`h-2 rounded-full transition-all duration-300 ${
@@ -525,7 +494,6 @@ const PackCard = ({ pack, onUseSession, onAddSessions, studioColor }) => {
         ></div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex gap-2">
         <button
           onClick={onUseSession}
@@ -548,7 +516,6 @@ const PackCard = ({ pack, onUseSession, onAddSessions, studioColor }) => {
         </button>
       </div>
 
-      {/* Add More Sessions */}
       {showAddMore && (
         <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
           <h4 className="text-sm font-medium text-gray-700 mb-3">Add More Sessions</h4>
@@ -603,7 +570,6 @@ const PackCard = ({ pack, onUseSession, onAddSessions, studioColor }) => {
         </div>
       )}
 
-      {/* Usage Stats */}
       <div className="mt-3 text-sm text-gray-600">
         <span>Total purchased: {pack.totalSessions}</span>
         <span className="mx-2">•</span>
