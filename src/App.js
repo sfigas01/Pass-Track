@@ -64,7 +64,7 @@ const PassTrack = () => {
     }
   };
 
-  const usePassSession = (packId) => {
+  const handleUseSession = (packId) => {
     setPacks(packs.map(pack => {
       if (pack.id === packId && pack.remainingSessions > 0) {
         return {
