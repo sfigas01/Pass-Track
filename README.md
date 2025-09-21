@@ -1,7 +1,7 @@
 # Pass-Track
 A beautiful, simple web app to track fitness class passes, monitor spending, and visualize usage patterns
 
-This app was created using Claude (not Claude Code) to learn more about vibe coding with Claud.
+This app was created in a few hours using Claude (not Claude Code) to learn more about vibe coding with Claude without development knowledge.
 It does not yet have a database, but does work with the session memory. 
 
 <img width="970" height="356" alt="Screenshot 2025-09-21 at 7 45 43 PM" src="https://github.com/user-attachments/assets/c82fb5b2-6afa-4beb-a254-39f40eaaf319" />
