@@ -379,7 +379,7 @@ const PassTrack = () => {
               <PackCard 
                 key={pack.id} 
                 pack={pack} 
-                onUseSession={() => usePassSession(pack.id)}
+                onUseSession={() => handleUseSession(pack.id)}
                 onAddSessions={(additional, cost) => addSessions(pack.id, additional, cost)}
                 studioColor={getStudioColor(pack.place)}
               />
