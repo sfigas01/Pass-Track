@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Calendar, TrendingUp } from 'lucide-react';
+import { Plus, Calendar, TrendingUp, Archive } from 'lucide-react';
 
 
 const PassTrack = () => {
@@ -7,6 +7,7 @@ const PassTrack = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showUsageNumbers, setShowUsageNumbers] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const [newPack, setNewPack] = useState({
     place: '',
     totalSessions: '',
@@ -44,6 +45,7 @@ const PassTrack = () => {
         cost: newPack.cost ? parseFloat(newPack.cost) : null,
         notes: newPack.notes,
         usageHistory: [],
+        archived: false,
         purchaseHistory: [{
           date: newPack.purchaseDate,
           sessions: parseInt(newPack.totalSessions),
@@ -99,10 +101,27 @@ const PassTrack = () => {
     }));
   };
 
+  const archivePack = (packId) => {
+    setPacks(packs.map(pack => {
+      if (pack.id === packId) {
+        return {
+          ...pack,
+          archived: !(pack.archived === true)
+        };
+      }
+      return pack;
+    }));
+  };
+
+  // Filter packs based on archived status
+  const activePacks = packs.filter(pack => pack.archived !== true);
+  const archivedPacks = packs.filter(pack => pack.archived === true);
+  const displayedPacks = showArchived ? archivedPacks : activePacks;
+
   const currentYear = new Date().getFullYear();
-  const totalRemaining = packs.reduce((total, pack) => total + pack.remainingSessions, 0);
+  const totalRemaining = activePacks.reduce((total, pack) => total + pack.remainingSessions, 0);
   
-  const totalSpentThisYear = packs.reduce((total, pack) => {
+  const totalSpentThisYear = activePacks.reduce((total, pack) => {
     if (pack.cost && new Date(pack.purchaseDate).getFullYear() === currentYear) {
       return total + pack.cost;
     }
@@ -110,7 +129,7 @@ const PassTrack = () => {
   }, 0);
 
   // Calculate usage distribution for pie chart
-  const usageDistribution = packs.reduce((acc, pack) => {
+  const usageDistribution = activePacks.reduce((acc, pack) => {
     const thisYearUsage = pack.usageHistory.filter(date => 
       new Date(date).getFullYear() === currentYear
     ).length;
@@ -125,7 +144,7 @@ const PassTrack = () => {
     return acc;
   }, []);
 
-  const expiringPacks = packs.filter(pack => {
+  const expiringPacks = activePacks.filter(pack => {
     if (!pack.expiryDate || pack.remainingSessions === 0 || pack.neverExpires) return false;
     const daysUntilExpiry = Math.ceil((new Date(pack.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
     return daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
@@ -268,13 +287,28 @@ const PassTrack = () => {
           </div>
         )}
 
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium mb-6 flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors"
-        >
-          <Plus size={20} />
-          Add New Pass Pack
-        </button>
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="flex-1 bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors"
+          >
+            <Plus size={20} />
+            Add New Pass Pack
+          </button>
+          {archivedPacks.length > 0 && (
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className={`px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${
+                showArchived 
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              <Archive size={20} />
+              {showArchived ? 'Show Active' : `Archived (${archivedPacks.length})`}
+            </button>
+          )}
+        </div>
 
         {showAddForm && (
           <div className="bg-white rounded-lg shadow-md p-4 mb-6">
@@ -369,21 +403,37 @@ const PassTrack = () => {
         )}
 
         <div className="space-y-4">
-          {packs.length === 0 ? (
+          {displayedPacks.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Calendar size={48} className="mx-auto mb-4 opacity-50" />
-              <p>No pass packs yet. Add your first one above!</p>
+              <p>
+                {showArchived 
+                  ? 'No archived passes yet.' 
+                  : packs.length === 0 
+                    ? 'No pass packs yet. Add your first one above!' 
+                    : 'All passes are archived. Click the "Archived" button to view them.'}
+              </p>
             </div>
           ) : (
-            packs.map(pack => (
-              <PackCard 
-                key={pack.id} 
-                pack={pack} 
-                onUseSession={() => handleUseSession(pack.id)}
-                onAddSessions={(additional, cost) => addSessions(pack.id, additional, cost)}
-                studioColor={getStudioColor(pack.place)}
-              />
-            ))
+            <>
+              {showArchived && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <p className="text-blue-800 text-sm font-medium">
+                    📦 Viewing archived passes ({archivedPacks.length})
+                  </p>
+                </div>
+              )}
+              {displayedPacks.map(pack => (
+                <PackCard 
+                  key={pack.id} 
+                  pack={pack} 
+                  onUseSession={() => handleUseSession(pack.id)}
+                  onAddSessions={(additional, cost) => addSessions(pack.id, additional, cost)}
+                  onArchive={() => archivePack(pack.id)}
+                  studioColor={getStudioColor(pack.place)}
+                />
+              ))}
+            </>
           )}
         </div>
       </div>
@@ -391,7 +441,7 @@ const PassTrack = () => {
   );
 };
 
-const PackCard = ({ pack, onUseSession, onAddSessions, studioColor }) => {
+const PackCard = ({ pack, onUseSession, onAddSessions, onArchive, studioColor }) => {
   const [showAddMore, setShowAddMore] = useState(false);
   const [additionalSessions, setAdditionalSessions] = useState('');
   const [additionalCost, setAdditionalCost] = useState('');
@@ -441,7 +491,13 @@ const PackCard = ({ pack, onUseSession, onAddSessions, studioColor }) => {
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-md p-4 border-l-4 ${getBorderColor()}`}>
+    <div className={`bg-white rounded-lg shadow-md p-4 border-l-4 ${pack.archived === true ? 'opacity-60' : ''} ${getBorderColor()}`}>
+      {pack.archived === true && (
+        <div className="mb-2 flex items-center gap-2 text-sm text-gray-500">
+          <Archive size={16} />
+          <span className="font-medium">Archived</span>
+        </div>
+      )}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
           <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
@@ -497,22 +553,36 @@ const PackCard = ({ pack, onUseSession, onAddSessions, studioColor }) => {
       <div className="flex gap-2">
         <button
           onClick={onUseSession}
-          disabled={pack.remainingSessions === 0 || isExpired}
+          disabled={pack.remainingSessions === 0 || isExpired || pack.archived === true}
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
-            pack.remainingSessions === 0 || isExpired
+            pack.remainingSessions === 0 || isExpired || pack.archived === true
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-indigo-600 text-white hover:bg-indigo-700'
           }`}
         >
-          {isExpired ? 'Expired' : 
+          {pack.archived === true ? 'Archived' :
+           isExpired ? 'Expired' : 
            pack.remainingSessions === 0 ? 'No Sessions Left' : 
            'Use Session'}
         </button>
+        {pack.archived !== true && (
+          <button
+            onClick={() => setShowAddMore(!showAddMore)}
+            className="bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Plus size={16} />
+          </button>
+        )}
         <button
-          onClick={() => setShowAddMore(!showAddMore)}
-          className="bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700 transition-colors"
+          onClick={onArchive}
+          className={`py-2 px-3 rounded-lg transition-colors ${
+            pack.archived === true
+              ? 'bg-gray-600 text-white hover:bg-gray-700'
+              : 'bg-gray-400 text-white hover:bg-gray-500'
+          }`}
+          title={pack.archived === true ? 'Unarchive' : 'Archive'}
         >
-          <Plus size={16} />
+          <Archive size={16} />
         </button>
       </div>
 
