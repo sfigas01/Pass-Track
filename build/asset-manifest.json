@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/Pass-Track/static/css/main.e6c13ad2.css",
-    "main.js": "/Pass-Track/static/js/main.037a90cd.js",
+    "main.js": "/Pass-Track/static/js/main.295f030e.js",
     "index.html": "/Pass-Track/index.html",
     "main.e6c13ad2.css.map": "/Pass-Track/static/css/main.e6c13ad2.css.map",
-    "main.037a90cd.js.map": "/Pass-Track/static/js/main.037a90cd.js.map"
+    "main.295f030e.js.map": "/Pass-Track/static/js/main.295f030e.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.037a90cd.js"
+    "static/js/main.295f030e.js"
   ]
 }
